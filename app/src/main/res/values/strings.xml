@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Robotic Arm &amp; Hand App</string>
+    <string name="title_hand">Main</string>
+    <string name="title_arm">Bras</string>
+    <string name="title_home">Accueil</string>
+    <string name="app_description">Cette application sert à contrôler le bras robotisé et la main robotisée. Utilisez la barre de navigation en bas de l\'écran pour sélectionner le système à contrôler.</string>
+    <string name="openHand">Ouvrir</string>
+    <string name="closeHand">Fermer</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
