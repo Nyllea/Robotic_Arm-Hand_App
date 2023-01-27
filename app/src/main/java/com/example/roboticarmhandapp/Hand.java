@@ -13,15 +13,16 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.math.BigInteger;
-
 import me.aflak.arduino.Arduino;
 import me.aflak.arduino.ArduinoListener;
 
 public class Hand extends Fragment implements ArduinoListener {
 
+    private static final int MAX_ANGLE = 180, DEFAULT_ANGLE = 90;
+    private static final int ARDUINO_VENDOR_ID = 2341, ARDUINO_USB_PERMISSION_DELAY = 3;
+
     SeekBar HandSeekBar;
-    TextView HandAngleIndicator;
+    TextView HandAngleIndicator, HandArduinoConnected;
     Button openHandButton,closeHandButton;
     private Arduino arduino;
     byte seeked;
@@ -42,26 +43,23 @@ public class Hand extends Fragment implements ArduinoListener {
         HandAngleIndicator = v.findViewById(R.id.HandAngleIndicator);
         openHandButton = v.findViewById(R.id.openHandButton);
         closeHandButton = v.findViewById(R.id.closeHandButton);
+        HandArduinoConnected = v.findViewById(R.id.HandArduinoConnectedTxt);
+
         arduino = new Arduino(getActivity());
-        arduino.addVendorId(2341);
+        arduino.addVendorId(ARDUINO_VENDOR_ID);
 
         //Détermine les caractéristiques du HandseekBar
-        HandSeekBar.setMax(180); //La valeur max atteignable
-        HandSeekBar.setProgress(90); //La valeur par défaut quand on ouvre l'application
-
-
-        HandAngleIndicator.setText("Bougez moi !");
+        HandSeekBar.setMax(MAX_ANGLE); //La valeur max atteignable
 
         HandSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                int adjust = (int) (i / 2);
+                int adjust = i / 2;
                 int newi = adjust * 2;
-                HandSeekBar.setProgress(newi);
                 seeked = (byte) adjust; // byte prend des valeurs entre -128 et 127
                 sendSeeked[0] = seeked;
                 //on affiche la valeur de l'angle sur l'application
-                HandAngleIndicator.setText("Angle du moteur : " + newi);
+                HandAngleIndicator.setText(String.valueOf(newi));
                 //on envoie l'angle voulue vers arduino
                 arduino.send(sendSeeked);
             }
@@ -77,30 +75,14 @@ public class Hand extends Fragment implements ArduinoListener {
             }
         });
 
+        HandSeekBar.setProgress(DEFAULT_ANGLE); //La valeur par défaut quand on ouvre l'application
+
         //fonction appelée lorsqu'on appuie sur le bouton "fermer" : on met l'angle à 180
-        closeHandButton.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                HandSeekBar.setProgress(180);
-                seeked = (byte) 90; // byte prend des valeurs entre -128 et 127
-                sendSeeked[0] = seeked;
-                HandAngleIndicator.setText("Angle du moteur : " + 180);
-                arduino.send(sendSeeked);
-            }
-        });
+        closeHandButton.setOnClickListener( V -> HandSeekBar.setProgress(MAX_ANGLE));
 
 
         //fonction appelée lorsqu'on appuie sur le boutton "ouvrir" : on met l'angle à 0
-        openHandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                HandSeekBar.setProgress(0);
-                seeked = (byte) 0; // byte prend des valeurs entre -128 et 127
-                sendSeeked[0] = seeked;
-                HandAngleIndicator.setText("Angle du moteur : " + 0);
-                arduino.send(sendSeeked);
-            }
-        });
+        openHandButton.setOnClickListener( V -> HandSeekBar.setProgress(0));
 
         return v;
     }
@@ -122,14 +104,14 @@ public class Hand extends Fragment implements ArduinoListener {
     //Connecte la carte arduino si la permission est donnée
     @Override
     public void onArduinoAttached(UsbDevice device) {
-        HandAngleIndicator.setText("Arduino connecté !");
+        HandArduinoConnected.setText(R.string.arduinoConnected);
         arduino.open(device);
     }
 
     //Si la carte est déconnectée
     @Override
     public void onArduinoDetached() {
-        HandAngleIndicator.setText("Arduino déconnecté");
+        HandArduinoConnected.setText(R.string.arduinoDisconnected);
     }
 
     @Override
@@ -146,8 +128,8 @@ public class Hand extends Fragment implements ArduinoListener {
     //Si la permission n'est pas accordée
     @Override
     public void onUsbPermissionDenied() {
-        HandAngleIndicator.setText("Permission denied. Attempting again in 3 sec...");
-        new Handler().postDelayed(() -> arduino.reopen(), 3000);
+        HandArduinoConnected.setText(getString(R.string.arduinoPermissionDenied, ARDUINO_USB_PERMISSION_DELAY));
+        new Handler().postDelayed(() -> arduino.reopen(), ARDUINO_USB_PERMISSION_DELAY);
     }
 
 }
