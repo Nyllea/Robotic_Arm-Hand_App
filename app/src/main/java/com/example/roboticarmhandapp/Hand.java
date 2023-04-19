@@ -35,12 +35,6 @@ public class Hand extends Fragment implements ArduinoListener {
         arduino.send(sendSeeked);
     }
 
-    private void SendToArduino(int value) {
-        sendSeeked[0] = (byte) value;
-
-        arduino.send(sendSeeked);
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
