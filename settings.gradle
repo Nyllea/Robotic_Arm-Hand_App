@@ -13,7 +13,10 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         jcenter()
-        maven { url "https://jitpack.io" }
+        maven {
+            url "https://jitpack.io"
+            credentials { username authToken }
+        }
     }
 }
 rootProject.name = "Robotic Arm & Hand App"

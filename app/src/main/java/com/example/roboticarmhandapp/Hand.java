@@ -16,9 +16,11 @@ import android.widget.TextView;
 import me.aflak.arduino.Arduino;
 import me.aflak.arduino.ArduinoListener;
 
+import java.util.Arrays;
+
 public class Hand extends Fragment implements ArduinoListener {
 
-    private static final int MAX_ANGLE = 180, DEFAULT_ANGLE = 90;
+    private static final int MAX_ANGLE = 10, DEFAULT_ANGLE = 5;
     private static final int ARDUINO_VENDOR_ID = 2341, ARDUINO_USB_PERMISSION_DELAY = 3;
 
     SeekBar HandSeekBar;
@@ -27,6 +29,7 @@ public class Hand extends Fragment implements ArduinoListener {
     private Arduino arduino;
     byte seeked;
     byte[] sendSeeked = new byte[1];
+    int currentPos = 0;
 
     public Hand() {
         // Required empty public constructor
@@ -56,11 +59,12 @@ public class Hand extends Fragment implements ArduinoListener {
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 int adjust = i / 2;
                 int newi = adjust * 2;
-                seeked = (byte) adjust; // byte prend des valeurs entre -128 et 127
+                seeked = (byte) (128 + (i - currentPos)); // byte prend des valeurs entre 0 et 255
+                currentPos = i;
                 sendSeeked[0] = seeked;
                 //on affiche la valeur de l'angle sur l'application
-                HandAngleIndicator.setText(String.valueOf(newi));
-                //on envoie l'angle voulue vers arduino
+                HandAngleIndicator.setText(String.valueOf(currentPos));
+                //on envoie la rotation voulue vers arduino
                 arduino.send(sendSeeked);
             }
 
@@ -77,12 +81,12 @@ public class Hand extends Fragment implements ArduinoListener {
 
         HandSeekBar.setProgress(DEFAULT_ANGLE); //La valeur par défaut quand on ouvre l'application
 
-        //fonction appelée lorsqu'on appuie sur le bouton "fermer" : on met l'angle à 180
-        closeHandButton.setOnClickListener( V -> HandSeekBar.setProgress(MAX_ANGLE));
+        //fonction appelée lorsqu'on appuie sur le bouton "fermer" : on met l'angle à 0
+        closeHandButton.setOnClickListener( V -> HandSeekBar.setProgress(0));
 
 
-        //fonction appelée lorsqu'on appuie sur le boutton "ouvrir" : on met l'angle à 0
-        openHandButton.setOnClickListener( V -> HandSeekBar.setProgress(0));
+        //fonction appelée lorsqu'on appuie sur le boutton "ouvrir" : on met l'angle à MAX_ANGLE
+        openHandButton.setOnClickListener( V -> HandSeekBar.setProgress(MAX_ANGLE));
 
         return v;
     }
@@ -116,7 +120,8 @@ public class Hand extends Fragment implements ArduinoListener {
 
     @Override
     public void onArduinoMessage(byte[] bytes) {
-
+        String msg = new String(bytes);
+        HandArduinoConnected.setText(msg);
     }
 
     @Override

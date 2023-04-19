@@ -12,6 +12,7 @@ void setup() {
 
 void loop() 
 {
+
   int convertedValue;
    // If there is a data stored in the serial receive buffer and read it
   if(Serial.available()){

@@ -6,7 +6,7 @@
     <string name="app_description">Cette application sert à contrôler le bras robotisé et la main robotisée. Utilisez la barre de navigation en bas de l\'écran pour sélectionner le système à contrôler.</string>
     <string name="openHand">Ouvrir</string>
     <string name="closeHand">Fermer</string>
-    <string name="angleMoteurTxt">Angle du moteur</string>
+    <string name="angleMoteurTxt">Nombre de tours du moteur</string>
     <string name="arduinoConnected">Arduino connecté !</string>
     <string name="arduinoDisconnected">Arduino déconnecté</string>
     <string name="arduinoPermissionDenied">Permission denied. Attempting again in %1$d sec&#8230;</string> //&#8230; = ...
