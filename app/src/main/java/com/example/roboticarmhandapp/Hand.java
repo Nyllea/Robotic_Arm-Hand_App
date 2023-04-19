@@ -9,30 +9,29 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.TextView;
+
+import android.view.MotionEvent;
 
 import me.aflak.arduino.Arduino;
 import me.aflak.arduino.ArduinoListener;
 
-import java.util.Arrays;
-
 public class Hand extends Fragment implements ArduinoListener {
-
-    private static final int MAX_ANGLE = 10, DEFAULT_ANGLE = 5;
     private static final int ARDUINO_VENDOR_ID = 2341, ARDUINO_USB_PERMISSION_DELAY = 3;
 
-    SeekBar HandSeekBar;
-    TextView HandAngleIndicator, HandArduinoConnected;
-    Button openHandButton,closeHandButton;
+    TextView HandArduinoConnected;
+    TouchableButton openHandButton,closeHandButton;
     private Arduino arduino;
-    byte seeked;
     byte[] sendSeeked = new byte[1];
-    int currentPos = 0;
 
     public Hand() {
         // Required empty public constructor
+    }
+
+    private void SendToArduino(int value) {
+        sendSeeked[0] = (byte) value;
+
+        arduino.send(sendSeeked);
     }
 
     @Override
@@ -41,52 +40,41 @@ public class Hand extends Fragment implements ArduinoListener {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_hand, container, false);
 
+        arduino = new Arduino(getActivity());
+        arduino.addVendorId(ARDUINO_VENDOR_ID);
+
         // Declaration des views
-        HandSeekBar = v.findViewById(R.id.HandSeekBar);
-        HandAngleIndicator = v.findViewById(R.id.HandAngleIndicator);
         openHandButton = v.findViewById(R.id.openHandButton);
         closeHandButton = v.findViewById(R.id.closeHandButton);
         HandArduinoConnected = v.findViewById(R.id.HandArduinoConnectedTxt);
 
-        arduino = new Arduino(getActivity());
-        arduino.addVendorId(ARDUINO_VENDOR_ID);
-
-        //Détermine les caractéristiques du HandseekBar
-        HandSeekBar.setMax(MAX_ANGLE); //La valeur max atteignable
-
-        HandSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                int adjust = i / 2;
-                int newi = adjust * 2;
-                seeked = (byte) (128 + (i - currentPos)); // byte prend des valeurs entre 0 et 255
-                currentPos = i;
-                sendSeeked[0] = seeked;
-                //on affiche la valeur de l'angle sur l'application
-                HandAngleIndicator.setText(String.valueOf(currentPos));
-                //on envoie la rotation voulue vers arduino
-                arduino.send(sendSeeked);
+        // On envoie une commande à l'arduino tant que le bouton Fermer est maintenu
+        closeHandButton.setOnTouchListener((View _v, MotionEvent event) -> {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                SendToArduino(-1);
+                closeHandButton.performClick();
+                return true;
             }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
+            else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                SendToArduino(0);
+                return true;
             }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            return false;
         });
 
-        HandSeekBar.setProgress(DEFAULT_ANGLE); //La valeur par défaut quand on ouvre l'application
-
-        //fonction appelée lorsqu'on appuie sur le bouton "fermer" : on met l'angle à 0
-        closeHandButton.setOnClickListener( V -> HandSeekBar.setProgress(0));
-
-
-        //fonction appelée lorsqu'on appuie sur le boutton "ouvrir" : on met l'angle à MAX_ANGLE
-        openHandButton.setOnClickListener( V -> HandSeekBar.setProgress(MAX_ANGLE));
+        // On envoie une commande à l'arduino tant que le bouton Ouvrir est maintenu
+        openHandButton.setOnTouchListener((View _v, MotionEvent event) -> {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                SendToArduino(1);
+                openHandButton.performClick();
+                return true;
+            }
+            else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                SendToArduino(0);
+                return true;
+            }
+            return false;
+        });
 
         return v;
     }
@@ -118,6 +106,7 @@ public class Hand extends Fragment implements ArduinoListener {
         HandArduinoConnected.setText(R.string.arduinoDisconnected);
     }
 
+    // Quand on recoit un message de l'Arduino, on l'affiche
     @Override
     public void onArduinoMessage(byte[] bytes) {
         String msg = new String(bytes);
