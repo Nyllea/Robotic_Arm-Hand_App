@@ -40,6 +40,4 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui:2.5.3'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'me.aflak.libraries:arduino:1.4.5'
-    // Essai de modification de la librairie pour permettre d'utiliser l'app sur Android12
-    //implementation 'com.github.Nyllea:Arduino-Library-Omaraflak:v1.0'
 }
