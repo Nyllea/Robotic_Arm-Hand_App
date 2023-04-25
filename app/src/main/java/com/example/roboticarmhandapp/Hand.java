@@ -1,8 +1,11 @@
 package com.example.roboticarmhandapp;
 
+import android.graphics.ColorFilter;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 
+import androidx.core.graphics.BlendModeColorFilterCompat;
+import androidx.core.graphics.BlendModeCompat;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
@@ -55,15 +58,24 @@ public class Hand extends Fragment implements ArduinoListener {
         closeHandButton = v.findViewById(R.id.closeHandButton);
         HandArduinoTxtView = v.findViewById(R.id.HandArduinoTxt);
 
+        // Création du filtre permettant de changer la couleur du background des boutons quand on les touche
+        ColorFilter backgroundTouchedColorFilter = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(R.color.purple_700, BlendModeCompat.SRC_ATOP);
+
         // On envoie une commande à l'arduino tant que le bouton Fermer est maintenu
         closeHandButton.setOnTouchListener((View _v, MotionEvent event) -> {
             if(event.getAction() == MotionEvent.ACTION_DOWN) {
                 SendToArduino(-1);
                 closeHandButton.performClick();
+
+                // Ajout du feedback en changeant la couleur du bouton
+                _v.getBackground().setColorFilter(backgroundTouchedColorFilter);
                 return true;
             }
             else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                 SendToArduino(0);
+
+                // On enlève le feedback en réinitialisant la couleur du bouton
+                _v.getBackground().clearColorFilter();
                 return true;
             }
             return false;
@@ -74,10 +86,16 @@ public class Hand extends Fragment implements ArduinoListener {
             if(event.getAction() == MotionEvent.ACTION_DOWN) {
                 SendToArduino(1);
                 openHandButton.performClick();
+
+                // Ajout du feedback en changeant la couleur du bouton
+                _v.getBackground().setColorFilter(backgroundTouchedColorFilter);
                 return true;
             }
             else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                 SendToArduino(0);
+
+                // On enlève le feedback en réinitialisant la couleur du bouton
+                _v.getBackground().clearColorFilter();
                 return true;
             }
             return false;
